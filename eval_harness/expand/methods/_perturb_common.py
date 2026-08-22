@@ -439,13 +439,10 @@ EVOL_OPERATORS_KB: List[Dict[str, Any]] = [
             "forward returns y with a fixed region squared"),
     },
     # ----------------------------------------------------------------
-    # The following 3 operators (bias_inject / eps_perturb /
-    # threshold_swap) are disabled after pilot dlcfh8n4arvp1up3 (2026-06-25)
-    # showed they have 0/N gate pass — they require pre-existing
-    # structure in the seed (named channels, numerical literals,
-    # threshold ops) that most KB matmul-style problems don't have.
-    # Keep the definitions here in case we revive them with a
-    # preflight check, but they're not in the active rotation pool.
+    # The following operators require seed-specific structure such as named
+    # channels, numerical literals, or threshold operations. Keep their
+    # definitions available for a future preflight-aware rotation, but exclude
+    # them from the active pool.
     # ----------------------------------------------------------------
 ]
 
@@ -1631,10 +1628,9 @@ async def run_gates_tbg(orig_src: str, variant_src: str,
 def _extract_tbt_func_interface(func_src: str) -> Optional[Dict[str, Any]]:
     """Parse a TBT function ref: top-level `def name(args)`.
 
-    Returns dict with keys matching teacher_triton_rollout_tbg.py's read
-    (primary_wrapper / primary_arg_names / primary_signature) — was returning
-    {name, arg_names} which the teacher didn't read (field-name mismatch →
-    primary_wrapper="" → TBT 0/166). FIXED 2026-07-20.
+    Returns a dict with the interface keys consumed by
+    teacher_triton_rollout_tbg.py: primary_wrapper, primary_arg_names, and
+    primary_signature.
     """
     try:
         tree = ast.parse(func_src)

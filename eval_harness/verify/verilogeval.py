@@ -25,12 +25,9 @@ Closed-blacklist discipline (the part that makes this safe):
   * Each infra sample is routed through `core.infra_failure` +
     `finalize_failure_classification`, so the closed-blacklist gate vets it.
 
-This runs at summarize time (summarize.sh:ve), reading `summary.txt` + the
-per-sample `*-sv-generate.log` already on disk. run_verilogeval.sh is NOT
-touched, so queued runs are unaffected; the clean recompute applies to whatever
-lands on disk, and falls back to the raw `pass_rate` when there are no infra
-samples (the common, clean case — verified 1:1 against the raw score on a
-clean reference run).
+This runs at summarize time (summarize.sh:ve), reading `summary.txt` and the
+per-sample `*-sv-generate.log` files already on disk. The recompute falls back
+to the raw `pass_rate` when no trusted infrastructure failures are present.
 
 References (upstream, verifiers_unzip/verifiers/):
   verify_server_v2.py:634-696  _base_result / _infra_failure / _model_failure

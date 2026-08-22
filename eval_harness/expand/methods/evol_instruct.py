@@ -301,13 +301,8 @@ class _Profile:
     # stashed in metadata. Downstream verification splices this into
     # the original tb in place of the original RefModule.
     emit_ref_module_copy: bool
-    # operator -> weight. None = equal weight round-robin (legacy).
-    # When set, operators with higher weight are picked more often via
-    # deterministic seed-hash sampling. Pilot data drives this:
-    # VEval prefers structural ops (in_breadth / complicate_input /
-    # add_constraint) 80% over prose ops (concretize / deepen /
-    # increase_reasoning) 20%, because VEval's short structured prompts
-    # absorb prose evolution but expose structural changes.
+    # operator -> weight. None selects equal-weight round-robin. When set,
+    # deterministic seed-hash sampling favors operators with higher weights.
     operator_weights: Dict[str, float] = None
 
 
@@ -321,19 +316,15 @@ LEGACY_PROFILE = _Profile(
 )
 
 
-# Pilot data ([eval_results/evol_instruct_veval_pilot.cot_v1/summary.md]):
-# in_breadth 3/3, complicate_input 1/1, add_constraint 1/1 (3 structural ops
-# all at 100% kept) vs concretize 0/6, deepen 0/5, increase_reasoning 0/4
-# (all prose ops at 0% kept). VEval prompts are short + already structured,
-# prose-level evolution silently round-trips through the teacher. Bias the
-# operator selection 80/20 toward the structural ops to lift kept rate.
+# VEval uses a profile-specific mix that favors structural transformations
+# while retaining coverage of prose-level transformations.
 _VEVAL_OPERATOR_WEIGHTS = {
-    "in_breadth":         0.267,   # ┐ structural ops, 0.80 total
-    "complicate_input":   0.267,   # │  (each gets equal share within
-    "add_constraint":     0.266,   # ┘   the 0.80 budget)
-    "concretize":         0.067,   # ┐ prose ops, 0.20 total
-    "deepen":             0.067,   # │
-    "increase_reasoning": 0.066,   # ┘
+    "in_breadth":         0.267,
+    "complicate_input":   0.267,
+    "add_constraint":     0.266,
+    "concretize":         0.067,
+    "deepen":             0.067,
+    "increase_reasoning": 0.066,
 }
 
 

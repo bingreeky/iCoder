@@ -73,12 +73,10 @@ class LLM:
 
     Supports **multi-key rotation**: when constructed with ``api_keys``
     as a list, the LLM owns N AsyncOpenAI clients (one per key) and
-    round-robins each call across them. Each key gets its own
-    ``asyncio.Semaphore(concurrency)`` so per-key concurrency stays at
-    the configured value — the effective in-flight cap across the whole
-    LLM is ``N * concurrency``. Used to split traffic between two API
-    accounts when one hits quota (each upstream account has its own
-    bucket; rotating doubles effective throughput)."""
+    round-robins each call across them. Each credential gets its own
+    ``asyncio.Semaphore(concurrency)`` so per-credential concurrency stays at
+    the configured value. This supports providers that issue multiple scoped
+    credentials with independent rate limits."""
 
     def __init__(
         self,
@@ -379,10 +377,8 @@ def make_router_from_env(
     ``EXPAND_PROMPT_MODELS``   — comma-separated list of models for the
                                  problem-side rollouts. If unset, falls
                                  back to traj-only (single-model run).
-    ``EXPAND_LLM_BASE_URL``    — endpoint shared by all models on the
-                                 router (current setup is one OpenAI-
-                                 compatible router that hosts many
-                                 model names).
+    ``EXPAND_LLM_BASE_URL``    — OpenAI-compatible endpoint shared by the
+                                 prompt-side models.
     ``EXPAND_LLM_API_KEY``     — single key shared across models on this
                                  endpoint.
 
@@ -408,9 +404,7 @@ def make_router_from_env(
     # (comma-separated) or ``{prefix}_API_KEY`` + ``{prefix}_API_KEY1`` / ...
     api_keys = collect_api_keys("EXPAND_LLM") or ["EMPTY"]
 
-    # Traj may live on a SEPARATE endpoint from the prompt models. The SFT
-    # assistant must come from the high-quality traj model, while prompt-side
-    # rewrites can use a different, broader/cheaper gateway.
+    # The trajectory model may use a separate endpoint from the prompt models.
     # ``EXPAND_TRAJ_BASE_URL`` / ``EXPAND_TRAJ_API_KEY(S)`` override
     # the shared ``EXPAND_LLM_*`` for the traj LLM only; unset => traj shares
     # the prompt endpoint (legacy single-gateway behaviour, unchanged).
@@ -452,9 +446,8 @@ def make_router_from_env(
     if not prompt_models_env:
         return LLMRouter(traj_llm=traj, prompt_llms=[traj])
     prompt_names = [m.strip() for m in prompt_models_env.split(",") if m.strip()]
-    # Per-prompt-model concurrency: some models rate-limit hard above ~6
-    # concurrent calls (the traj/prompt pools share one upstream account
-    # quota). List the models to cap to ``traj_concurrency`` via
+    # Per-prompt-model concurrency: providers may enforce different limits by
+    # model. List models that should use ``traj_concurrency`` via
     # ``EXPAND_LOW_CONCURRENCY_MODELS`` (comma-separated, substring match,
     # case-insensitive). Unlisted models get the full ``concurrency`` budget.
     _LOW_CONCURRENCY = tuple(
@@ -468,12 +461,9 @@ def make_router_from_env(
             return traj_concurrency
         return concurrency
 
-    # Per-prompt-model endpoint routing. A single prompt fleet may mix models
-    # from two gateways: one hosts models under a ``Vendor/…`` namespace
-    # (name CONTAINS ``/``), while bare model names stay on the shared/traj
-    # endpoint. Route by the ``/`` in the model id: namespaced =>
-    # EXPAND_LLM_*; bare => the traj endpoint/keys. Unset EXPAND_TRAJ_* keeps
-    # both on the single shared endpoint (legacy behaviour, unchanged).
+    # Per-model endpoint routing: namespaced model identifiers use the prompt
+    # endpoint, while bare identifiers use the trajectory endpoint. When the
+    # trajectory endpoint is unset, both resolve to the shared endpoint.
     def _endpoint_keys_for_prompt(name: str):
         if "/" in name:
             return base_url, api_keys          # namespaced id

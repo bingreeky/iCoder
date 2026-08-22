@@ -1,9 +1,8 @@
 """BenchEvolver — solution-first adaptation.
 
-The original prompt-evolution variant (pilot) caused reference drift:
-the prompt was evolved away from the seed but the reference RTL and the
-testbench were kept verbatim, so the resulting (prompt, ref, tb) triplet
-no longer agreed. See docs/expansion_pilot_report.md §3.2 / §3.5 / §6.
+Prompt-only evolution can cause reference drift when the prompt changes while
+the reference RTL and testbench remain fixed. This implementation evolves the
+solution and derives the prompt and tests from the same mutation contract.
 
 This rewrite flips the direction. For each seed we:
 
@@ -52,9 +51,8 @@ IVERILOG = "/usr/bin/iverilog"
 # fed *verbatim* to BOTH the evolve-RTL prompt and the testbench-generation
 # prompt. The two LLM calls thus share a single source of truth for what
 # the operator means, instead of each independently re-interpreting a
-# free-form op description (which produced ref/tb semantic drift in the
-# pre-contract pilot — see docs/expansion_pilot_report.md and the
-# AutoVeriFix-style "shared spec" pattern referenced in the design notes).
+# free-form operation description. This keeps the reference and testbench
+# aligned around one explicit behavioral contract.
 #
 # Fields:
 #   name                : short identifier

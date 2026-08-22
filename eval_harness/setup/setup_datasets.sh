@@ -25,9 +25,9 @@ clone RTLLM        https://github.com/hkust-zhiyao/RTLLM.git          rtllm
 # verilog-eval/verilog-eval/. If the upstream URL changes, adjust here.
 clone verilog-eval https://github.com/NVlabs/verilog-eval.git         verilog-eval
 
-# RealBench .md.gpg decryption (passphrase is in the repo's Makefile: iprc-dip)
+# RealBench publishes an upstream target for preparing its encrypted files.
 if [ -d RealBench ] && ! find RealBench -name '*.md' -not -name 'README*' | grep -q .; then
-  echo "[datasets] RealBench: decrypting .md.gpg (PASSWORD=iprc-dip)..."
+  echo "[datasets] RealBench: running upstream decrypt target..."
   ( cd RealBench && make decrypt >/tmp/rb_decrypt.log 2>&1 || tail -5 /tmp/rb_decrypt.log )
 fi
 

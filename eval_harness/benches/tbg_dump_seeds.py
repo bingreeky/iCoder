@@ -36,15 +36,14 @@ def _attach_interface(split: str, rec: dict) -> dict:
         if split == "g":
             iface = _extract_triton_interface(ref)
         else:  # t — uses a different extractor
-            from expand.methods._perturb_common import _extract_tbt_func_interface  # was `inversecoder` (wrong module) → ImportError → swallowed by except → triton_interface=None → TBT 0/166 (teacher prompt had no primary_wrapper → model output kernel-only → format_fail). FIXED 2026-07-20.
+            from expand.methods._perturb_common import _extract_tbt_func_interface
             iface = _extract_tbt_func_interface(rec.get("evaluator_info", {}).get("func_src", ""))
     except Exception:
         iface = None
     md = rec.setdefault("metadata", {})
-    # _extract_tbt_func_interface returns a plain dict; _extract_triton_interface
-    # returns a TritonInterface dataclass. asdict() only works on dataclasses;
-    # calling it on a dict raises TypeError (was crashing the TBT dump → 0 seeds
-    # → triton_interface=None → TBT 0/166). Handle both.
+    # _extract_tbt_func_interface returns a plain dict, while
+    # _extract_triton_interface returns a TritonInterface dataclass. Normalize
+    # both forms before serializing the seed record.
     if iface is None:
         md["triton_interface"] = None
     elif isinstance(iface, dict):

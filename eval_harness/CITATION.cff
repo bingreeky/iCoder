@@ -1,19 +1,19 @@
 cff-version: 1.2.0
-message: "If you use eval_harness in your work, please cite this repository."
-title: "eval_harness: a one-click eval suite for code LLMs (Verilog + Triton/CUDA)"
+message: "If you use the iCoder Eval Harness, please cite this repository."
+title: "iCoder Eval Harness: Task-Native Evaluation for Industrial Coding Models"
 type: software
 version: "0.1.0"
 license: MIT
-repository-code: "https://github.com/Magicpjl/eval_harness"
+repository-code: "https://github.com/bingreeky/iCoder"
 abstract: >-
-  A single-proxy, two-stage (generate -> stop engine -> shard-verify) evaluation
-  harness for code LLMs across Verilog (VerilogEval, RTLLM 2.0, ArchXBench v1.5,
-  RealBench-Module, CVDP cid003) and Triton/CUDA (KernelBench L1/L2/L3,
-  TritonBench-G) benchmarks. Supports local vLLM or any external
-  OpenAI-compatible API endpoint.
+  A resource-aware evaluation harness for industrial coding models across RTL
+  design and GPU kernel optimization. It combines endpoint-neutral candidate
+  generation with task-native executable verification and auditable run
+  artifacts, supporting local vLLM deployments and external OpenAI-compatible
+  APIs.
 authors:
   - name: Magicpjl
-    email: Magicpjl@users.noreply.github.com
+    email: 148951341+Magicpjl@users.noreply.github.com
 keywords:
   - llm-evaluation
   - code-generation

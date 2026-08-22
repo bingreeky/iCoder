@@ -60,7 +60,7 @@
 # export RTLLM_ROOT=$CODERBENCH_ROOT/rtllm/RTLLM                       # os.walk finds 50 designs (design_description.txt + testbench.v), skips _chatgpt
 # ArchXBench / RealBench — cloned from github:
 #   ArchXBench: github.com/sureshpurini/ArchXBench (level-0..6, problem-description.txt + tb.v)
-#   RealBench:  github.com/IPRC-DIP/RealBench  (.md.gpg already `make decrypt`-ed with PASSWORD=iprc-dip)
+#   RealBench:  github.com/IPRC-DIP/RealBench  (run its upstream `make decrypt` target)
 # export ARCHX_ROOT=$CODERBENCH_ROOT/ArchXBench
 # export RB_ROOT=$CODERBENCH_ROOT/RealBench
 # RealBench verify uses its own run_verify.py; RB_PY defaults to

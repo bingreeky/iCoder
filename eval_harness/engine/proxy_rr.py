@@ -11,12 +11,10 @@ Two modes:
     real bearer key (clients send a dummy), and (b) KernelBench's local
     query_server hardcodes model="default" which the gateway rejects.
 
-Reliability: requests are retried with backoff on transient upstream faults
-(429/5xx/timeout). On terminal failure the proxy passes through the REAL
-upstream status code + body (no synthetic 500) so clients/preflight can
-distinguish e.g. a 503 "No active provider key" from a genuine 500. See
-eval_results/COMPARISON.md reliability audit for the silent-poisoning this
-fixes. Backoff mirrors expand/llm.py:184-203.
+Reliability: requests are retried with backoff on transient upstream faults.
+On terminal failure the proxy preserves the upstream status code and body so
+clients can distinguish provider, quota, and server failures. Backoff mirrors
+the shared client policy in expand/llm.py.
 """
 import itertools
 import json
@@ -45,28 +43,19 @@ THINK = os.environ.get("THINK", "1") not in ("0", "false", "False", "")
 PROXY_API_KEY = os.environ.get("PROXY_API_KEY", "").strip()
 PROXY_SERVED_NAME = os.environ.get("PROXY_SERVED_NAME", "").strip()
 
-# Retry / backoff config. Mirrors expand/llm.py:184-203 — the gateway
-# has minute-window token buckets and intermittent 500/503 storms; a single
-# urlopen + synthetic 500 turned every transient into a hard sample failure
-# (the silent-zero / silent-not-compiled poisoning in eval_results/COMPARISON.md).
-# Now: ride out transients with backoff, and on exhaustion PASSTHROUGH the real
-# upstream status + body (so e.g. a 503 "No active provider key" reaches the
-# client/preflight verbatim instead of being collapsed into a 500).
+# Retry and backoff settings mirror the shared client policy. Transient faults
+# are retried; exhausted requests preserve the upstream status and body so the
+# caller can classify the failure through a trusted control-plane channel.
 PROXY_MAX_RETRIES = int(os.environ.get("PROXY_MAX_RETRIES", "5"))
 PROXY_RETRY_BACKOFF_CAP = int(os.environ.get("PROXY_RETRY_BACKOFF_CAP", "20"))
 # Quota/429 gets a longer token-bucket-style backoff (30/60/90/120s) — the
 # upstream refills on a ~minute window, so short retries just burn the budget.
 PROXY_RETRY_429_MAX = int(os.environ.get("PROXY_RETRY_429_MAX",
                                           str(PROXY_MAX_RETRIES)))
-# Per-request upstream urlopen timeout (seconds). Bounds a single hung/dead
-# engine so it can't stall a bench forever (KB query_server uses timeout=None
-# client-side). Default 86400 (24h) = effectively no practical limit, per the
-# directive "不要设置时间限制，让他跑多长时间都可以": slow generations under
-# high concurrency must run to completion, not be killed. The old 600s cap
-# caused the model KB-L3 drop=42 (128-way contention → slow level-3 gens
-# exceeded 600s → proxy 504 → no kernel written → "Kernel not found").
-# 24h still backstops a truly hung engine; set PROXY_UPSTREAM_TIMEOUT=None to
-# disable entirely (block forever).
+# Per-request upstream urlopen timeout (seconds). This bounds an unresponsive
+# engine even when a downstream client does not configure its own timeout. Set
+# PROXY_UPSTREAM_TIMEOUT=None only when an external supervisor provides the
+# required lifecycle boundary.
 _upstream_to = os.environ.get("PROXY_UPSTREAM_TIMEOUT", "86400")
 PROXY_UPSTREAM_TIMEOUT = None if _upstream_to == "None" else int(_upstream_to)
 

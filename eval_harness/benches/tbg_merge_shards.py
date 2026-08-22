@@ -49,16 +49,10 @@ def main() -> None:
         for r in merged.values():
             f.write(json.dumps(r, ensure_ascii=False) + "\n")
 
-    # Skipped = rows unwinnable for ANY model: the reference itself doesn't
-    # compile/run under the installed Triton+CUDA (ref_smoke_failed / verify_skipped),
-    # i.e. an infrastructure failure. These must NOT count against the
-    # denominator — otherwise the metric is a harness ceiling (4 models all
-    # scored 26-27/184 because 46 refs were unrunnable; see
-    # eval_results/COMPARISON.md TBG non-discrimination audit).
-    #
-    # NOTE: "skipped_no_teacher_code" (model produced no parseable Triton) is a
-    # MODEL failure, NOT a skip — it stays in the denominator as compiled=False.
-    # This is the 2026-07-20 narrow口径; verify.core.is_infra encodes it once.
+    # Exclude only trusted infrastructure failures where the reference cannot
+    # run under the installed toolchain. Missing or unparseable candidate code
+    # remains a model failure and stays in the denominator. verify.core.is_infra
+    # provides the shared classification policy.
     def _skipped(r):
         return _is_infra(r)
 

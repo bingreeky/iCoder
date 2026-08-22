@@ -44,11 +44,9 @@ BENCHES_DOWN=(
 )
 
 # ============================================================
-# Table profile — the 11-column deliverable table's subset.
-# Rows = models, columns = [VEval-spec, VEval-code, RTLLM, CVDP cid003,
-# RealBench Syn@5, RealBench Func@5, ArchXBench t, KB L1, KB L2, KB L3,
-# TritonBench-G]. Archx/RealBench datasets are not on this host's mount → their
-# runners are omitted here (columns stay blank). TBT is not a table column.
+# Table profile — the standard cross-domain comparison subset.
+# Keep benchmark membership and runner settings here so every invocation uses
+# the same configuration contract.
 # Use: bash run_all.sh --api --profile table <api_base> <served_name>
 # ============================================================
 BENCHES_UP_TABLE=(
@@ -126,11 +124,8 @@ BENCHES_UP_VEVAL=(
 BENCHES_DOWN_VEVAL=()
 
 # ============================================================
-# kbveval profile — re-run ONLY VerilogEval + KernelBench (gen+eval) in one
-# engine load. For local checkpoints where the full-table rerun would waste
-# hours re-doing already-good ArchX/RTLLM/RealBench/TBG: restore those from a
-# backup, then this fills the two broken columns (KB after the default-404 fix;
-# VEval after cleaning stale .sv so the fence patch regenerates). No slow ArchX.
+# kbveval profile — run VerilogEval and KernelBench in one engine lifecycle.
+# Useful for focused regression checks without running the full registry.
 # bash run_all.sh --profile kbveval /path/to/your-model your-model 65536
 # ============================================================
 BENCHES_UP_KBVEVAL=(
@@ -142,11 +137,9 @@ BENCHES_DOWN_KBVEVAL=(
 )
 
 # ============================================================
-# coderrtl profile — full re-test of a local HF checkpoint (your-model):
-# VerilogEval@4 + CVDP + TritonBench-G + TritonBench-T. UP = generate/RTL/CVDP
-# (engine online); DOWN = TBG/TBT verify (engine stopped, sharded). No KB/RTLLM/
-# archx/realbench (not in scope for this model). CVDP needs the served_name
-# registered in CVDP ALIASES (local_extensions/eval_5models_factory.py).
+# coderrtl profile — RTL and Triton-focused evaluation for a local checkpoint.
+# Generation runs with the engine online; Triton verification runs after the
+# engine stops. CVDP requires the served name to be registered upstream.
 # bash run_all.sh --profile coderrtl /path/to/your-model your-model 32768
 # ============================================================
 BENCHES_UP_CODERRTL=(
@@ -161,10 +154,7 @@ BENCHES_DOWN_CODERRTL=(
 )
 
 # ============================================================
-# arcb profile — re-run ONLY the CPU benches (ArchXBench + RealBench + CVDP)
-# to fill those columns after a prior run where they failed/were skipped, WITHOUT
-# re-running the expensive GPU benches (KB/TBG) whose good results are kept.
-# All three are CPU (iverilog/verilator/cocotb) + engine queries; DOWN empty.
+# arcb profile — run the CPU-backed ArchXBench, RealBench, and CVDP subset.
 # Use: bash run_all.sh --api --profile arcb <key>
 # ============================================================
 BENCHES_UP_ARCB=(
@@ -175,10 +165,7 @@ BENCHES_UP_ARCB=(
 BENCHES_DOWN_ARCB=()
 
 # ============================================================
-# kbonly profile — re-run ONLY KernelBench (gen+eval, L1/L2/L3) to verify a
-# vLLM-serve fix (e.g. cuda-graph ON / GDN packages) reduces KB drop, WITHOUT
-# re-running VE/RTLLM/ArchX/RealBench/TBG (already good). Engine online for gen,
-# stopped for sharded eval. Force fresh gen by rm-ing the old run-dir kernels.
+# kbonly profile — run KernelBench generation and sharded verification only.
 # bash run_all.sh --profile kbonly /path/to/your-model your-model 65536
 # ============================================================
 BENCHES_UP_KBONLY=(
@@ -189,10 +176,7 @@ BENCHES_DOWN_KBONLY=(
 )
 
 # ============================================================
-# kbl3 profile — KernelBench L3 ONLY (50 hard problems), cuda backend,
-# SAMPLES=1 TEMP=0 pass@1. Single-runtime (image py; CUDA kernels need nvcc +
-# torch CUDA exec, NOT triton 3.6). gen (UP, proxy online) + eval (DOWN,
-# sharded, engine stopped).
+# kbl3 profile — run the KernelBench L3 subset with the CUDA backend.
 #   bash run_all.sh --profile kbl3 <model> <served_name> 81920
 # ============================================================
 BENCHES_UP_KBL3=(
@@ -203,9 +187,7 @@ BENCHES_DOWN_KBL3=(
 )
 
 # ============================================================
-# tritonbench profile — re-run ONLY TritonBench-G + TritonBench-T (gen+eval)
-# with a vLLM-serve fix (cuda-graph ON), WITHOUT KB (done in kbonly) or the
-# Verilog benches. Force fresh gen by rm-ing old rollout.jsonl.
+# tritonbench profile — run TritonBench-G and TritonBench-T only.
 # bash run_all.sh --profile tritonbench <model> <served_name> 65536
 # ============================================================
 BENCHES_UP_TRITONBENCH=(
@@ -217,18 +199,14 @@ BENCHES_DOWN_TRITONBENCH=(
   "tritonbench_t_eval | run_tritonbench.sh | eval | t | "
 )
 
-# archx-only profile — re-run ONLY ArchXBench (single-phase gen+test, cuda-graph)
-# to recover the 11 GEN_CONNECTION_RESET (eager+nseq256 worker crash).
+# archx-only profile — run ArchXBench generation and verification only.
 # bash run_all.sh --profile archx <model> <served_name> 65536
 BENCHES_UP_ARCHXONLY=(
   "archx | run_archx.sh | | | SAMPLES=5 TEMP=0.8 MAXTOK=49152"
 )
 BENCHES_DOWN_ARCHXONLY=()
 
-# tbt-only profile — re-run ONLY TritonBench-T (gen+eval) after fixing the
-# tbg_dump_seeds.py triton_interface bug (was None → teacher prompt had no
-# primary_wrapper → model output kernel-only → 0/166). Now seeds have
-# triton_interface, the teacher prompt specifies the def-wrapper → format_ok>0.
+# tbt-only profile — run TritonBench-T generation and verification only.
 # bash run_all.sh --profile tbt <model> <served_name> 65536
 BENCHES_UP_TBT=(
   "tritonbench_t_gen | run_tritonbench.sh | gen | t 1 | TEMP=0 MAXTOK=58000 WORKERS=16"
@@ -238,14 +216,9 @@ BENCHES_DOWN_TBT=(
 )
 
 # ============================================================
-# smoke profile — ONE pass@1 sample of EVERY benchmark, to confirm the whole
-# pipeline (gen + verify + summarize) runs through end-to-end after a config/
-# verifier change. NOT a scored run (pass@1 only). Lightest feasible "run each
-# benchmark through" without per-runner problem-count limits (only run_archx.sh
-# has a LIMIT knob; the others run their full problem set at SAMPLES=1). ArchX is
-# capped via the LIMIT env (inject LIMIT=5 on the submit). KB is L1 only, TBG is
-# g only — the GPU-verify benches kept minimal. Use to smoke both local-vLLM and
-# API modes after touching config.sh / registry / verify/.
+# smoke profile — minimal end-to-end coverage of generation, verification, and
+# summarization after a configuration or verifier change. This is a diagnostic
+# profile, not a scored evaluation.
 # LIMIT=5 bash run_all.sh --profile smoke <model> <name> 81920
 # LIMIT=5 bash run_all.sh --api --profile smoke <gateway_model>
 # ============================================================
@@ -264,12 +237,9 @@ BENCHES_DOWN_SMOKE=(
 )
 
 # ============================================================
-# tracka profile — local-vLLM scored run for 32B base models:
-# VerilogEval@4 + CVDP n=5 pass@1 + RTLLM@4 + TritonBench-G (gen+eval). All
-# UP benches hit the local engine (proxy :8000); DOWN = TBG verify (engine
-# stopped, sharded). The 32B is KV-tight @TP1, so submit with MAX_NUM_SEQS=64
-# and MLEN=81920 — set VLLM_EXTRA_ARGS=--swap-space 16 so
-# vLLM accepts the 80K window AND TBG's 58K-token gens fit (KV spills to RAM).
+# tracka compatibility profile — retained for existing local-vLLM automation.
+# New integrations should prefer a descriptive profile assembled from the
+# public benchmark runners above.
 # MAX_NUM_SEQS=64 bash run_all.sh --profile tracka <model> <name> 81920
 # ============================================================
 BENCHES_UP_TRACKA=(
@@ -283,20 +253,9 @@ BENCHES_DOWN_TRACKA=(
 )
 
 # ============================================================
-# incoder2 profile — the scored benches for a 2×8-card campaign,
-# each at the CANONICAL eval-config settings (see README "覆盖的 benchmark"). RTLLM@4 (65536 ≥ 49152, superset) and
-# CVDP cid003 (n=5, not in the canonical table) are ALREADY DONE in
-# results/<key>/ and NOT re-run here. TBG is skipped for this campaign.
-# This profile (re-)runs:
-#   VerilogEval spec+cc: @4 t0.8, MAXTOK=49152 — RE-RUN (prior was 32768;
-#     run_verilogeval.sh rm -rf's the build so the 32768 results are cleanly
-#     overwritten with the canonical-token run).
-#   ArchX v1.5: 5 samples, func/syntax pass@1, MAXTOK=49152 (SAMPLES=5 TEMP=0).
-#   RealBench-Module: 5 samples, syntax/func pass@1/@5, MAXTOK=49152.
-#   KernelBench L1/L2/L3: 1 sample, compiled%/correct% pass@1, MAXTOK=58000,
-#     **cuda backend** (extra="1,2,3 cuda" — model writes CUDA, eval runs
-#     nvcc/CUDA, NOT the triton default).
-# DOWN = KB eval (engine stopped, GPU-sharded verify, cuda backend).
+# incoder2 compatibility profile — retained for existing orchestration that
+# combines VerilogEval, ArchXBench, RealBench, and KernelBench. New campaigns
+# should define a descriptive profile with an explicit configuration record.
 # MAX_NUM_SEQS=64 TP_SIZE=2 bash run_all.sh --profile incoder2 <model> <name> 81920
 # ============================================================
 BENCHES_UP_INCODER2=(
@@ -348,17 +307,9 @@ BENCHES_DOWN_TBGRESUME=(
 )
 
 # ============================================================
-# dpskinfra profile — the 5-bench infra-validation pass (VEval spec+cc @4,
-# ArchX v1.5 func@1, CVDP cid003 n=5, TritonBench-G corr@1). This profile is
-# the UP (engine-online) half — VEval + ArchX + CVDP(n=5) + TBG-G *generate*.
-# The DOWN half (TBG-G *eval*) is run separately via the `tbgresume` profile
-# AFTER switching SYS_PY to the triton-3.6 interpreter (the image's triton
-# 2.3.1 makes ~28/29 TBG "skip" rows spurious version-mismatches).
-#   KEY MUST equal the gateway model id (the proxy rewrites model -> KEY), so
-# to keep prior results back up results/<KEY>/ -> results/<KEY>.prev_* first.
-#   EXTERNAL_API_URL=.. EXTERNAL_API_KEY=.. \
-#     bash run_all.sh --api --profile dpskinfra <served_name>
-# (the model's served name must be CVDP-registered + VE sv-generate whitelisted).
+# dpskinfra compatibility profile — infrastructure-validation generation for
+# VerilogEval, ArchXBench, CVDP, and TritonBench-G. Run Triton verification
+# separately with the matching verifier environment.
 # ============================================================
 BENCHES_UP_DPSKINFRA=(
   "verilogeval       | run_verilogeval.sh  |       |       | SAMPLES=4 TEMP=0.8 TOPP=0.95 MAXTOK=49152"

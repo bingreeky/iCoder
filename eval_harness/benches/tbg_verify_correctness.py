@@ -7,16 +7,10 @@ rows annotated with verify_compiled / verify_correct / verify_meta, plus the
 hardened classify fields (infra_code / failure_origin / triton_launched /
 identity_hack / framework_delegation).
 
-Hardened verify path: delegates to verify.tritonbench.verify_tbg, which ports
-the upstream RLVR worker (_run_tritonbench_variant + _nested_allclose + launch
-counter + identity_hack + framework_delegation) and the verify.core
-infra/model classification. This replaces the old verify_one
-(teacher_triton_rollout_tbg.py:307-382) which:
-  * seeded nothing            → autotune kernels flipped pass/fail per run
-  * used a flat 180s timeout  → clipped the 38 @triton.autotune tasks at the
-                                boundary, drifting the ref_smoke_failed set
-                                (the 137/139 denominator bug)
-  * had no anti-cheat         → identity-hack / torch-delegation kernels passed
+The hardened path delegates to verify.tritonbench.verify_tbg, which combines
+the task-native numerical oracle with deterministic seeding, adaptive timeout
+handling, launch evidence, anti-cheat diagnostics, and the shared
+infrastructure/model classification policy.
 
 Each row gets its own disposable subprocess (verify_tbg spawns a fresh python
 per variant), so a Triton compile crash on row N cannot poison row N+1's CUDA
