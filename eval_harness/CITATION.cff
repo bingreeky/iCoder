@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "If you use eval_harness in your work, please cite this repository."
+title: "eval_harness: a one-click eval suite for code LLMs (Verilog + Triton/CUDA)"
+type: software
+version: "0.1.0"
+license: MIT
+repository-code: "https://github.com/Magicpjl/eval_harness"
+abstract: >-
+  A single-proxy, two-stage (generate -> stop engine -> shard-verify) evaluation
+  harness for code LLMs across Verilog (VerilogEval, RTLLM 2.0, ArchXBench v1.5,
+  RealBench-Module, CVDP cid003) and Triton/CUDA (KernelBench L1/L2/L3,
+  TritonBench-G) benchmarks. Supports local vLLM or any external
+  OpenAI-compatible API endpoint.
+authors:
+  - name: Magicpjl
+    email: Magicpjl@users.noreply.github.com
+keywords:
+  - llm-evaluation
+  - code-generation
+  - verilog
+  - triton
+  - cuda
+  - benchmark
+  - vllm

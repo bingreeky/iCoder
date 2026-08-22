@@ -1,0 +1,86 @@
+NOTICE — eval_harness third-party & layered licensing
+=====================================================
+
+eval_harness is a thin orchestration harness. Its own code is MIT, but it
+drives and redistributes material from several upstream projects whose own
+licenses apply. This file records which is which. "This repo's code" = the
+harness scripts, verify/, engine/, expand/, benches/, setup/ glue.
+
++------------------------------------------------------------------------+
+| 1. THIS REPO'S CODE  — MIT (root ./LICENSE)                           |
++------------------------------------------------------------------------+
+  Copyright (c) 2026 Magicpjl
+  SPDX: MIT
+  Covers all harness code we authored. Upstream code we *ship verbatim* or
+  *clone* is governed by its own license below — the root MIT does NOT
+  automatically extend to it.
+
++------------------------------------------------------------------------+
+| 2. VENDORED VERBATIM — ext/verilog-eval/  (shipped in this repo)       |
++------------------------------------------------------------------------+
+  Source:   https://github.com/NVlabs/verilog-eval
+  License:  MIT  — Copyright (c) 2023-2024 NVIDIA Research Projects
+            (also contains code from OpenAI human-eval, MIT,
+             Copyright (c) OpenAI)
+  SPDX:     NOASSERTION on GitHub (two copyright blocks); the file is MIT.
+  The upstream LICENSE is preserved verbatim at ext/verilog-eval/LICENSE.
+  Modification: this repo ships ONE patched copy of
+    ext/verilog-eval/scripts/sv-generate (a gateway/LLM whitelist adaptation
+    so it can talk to a local proxy). The patch is applied in-tree; the
+    upstream LICENSE still covers the file. See setup/apply_veval_patches.py
+    for the equivalent patch re-applied to a fresh clone.
+  Redistribution: fine under MIT, but keep ext/verilog-eval/LICENSE in place.
+
++------------------------------------------------------------------------+
+| 3. CLONED DATASETS — fetched at setup time, NOT shipped in this repo   |
++------------------------------------------------------------------------+
+  setup/setup_datasets.sh `git clone`s the following into ./benchmarks at
+  first-run. They carry their OWN licenses — comply with each upstream.
+
+  | Benchmark    | Upstream repo                          | License    | Copyright / holder                       |
+  |--------------|----------------------------------------|------------|------------------------------------------|
+  | VerilogEval  | NVlabs/verilog-eval                    | MIT        | NVIDIA Research Projects (+OpenAI humaneval) |
+  | KernelBench  | ScalingIntelligence/KernelBench        | MIT        | A. Ouyang et al, Stanford Scaling Intel. Lab |
+  | TritonBench  | thunlp/TritonBench                      | Apache-2.0 | THUNLP                                   |
+  | ArchXBench   | sureshpurini/ArchXBench                 | MIT        | sureshpurini                             |
+  | RealBench    | IPRC-DIP/RealBench                      | MIT        | IPRC-DIP                                 |
+  | RTLLM 2.0    | hkust-zhiyao/RTLLM                       | MIT        | hkust-zhiyao (HKUST ZhiYao)              |
+  | CVDP cid003  | (user-supplied; mounted separately)     | **unknown** | verify the upstream CVDP checkout you    |
+  |              |                                         |            | provide — see setup/apply_cvdp_patches.py |
+
+  Notes:
+  - TritonBench is Apache-2.0, NOT MIT. Its NOTICE/patent-grant terms differ
+    from the rest — if you redistribute TritonBench material, follow
+    Apache-2.0 (state changes, preserve NOTICE).
+  - RealBench ships problem files as .md.gpg; setup_datasets.sh runs
+    `make decrypt` (passphrase documented in RealBench's Makefile). Respect
+    RealBench's upstream terms before redistributing the decrypted problems.
+  - CVDP is not auto-cloned; the user supplies the checkout. Determine its
+    license from the CVDP source you obtain and comply.
+  - These datasets are the benchmark CONTENTS (problem statements, reference
+    solutions, testbenches). Their licenses are independent of this harness.
+
++------------------------------------------------------------------------+
+| 4. PATCHES WE SHIP — our derivative modifications, MIT                 |
++------------------------------------------------------------------------+
+  setup/apply_kb_patches.py     — patches a KernelBench checkout
+  setup/apply_veval_patches.py — patches a verilog-eval checkout
+  setup/apply_cvdp_patches.py   — patches a CVDP checkout
+  The patch LOGIC is this repo's code (MIT). It modifies upstream code in
+  YOUR ./benchmarks checkout at setup time; the modified files remain under
+  the upstream license (see table above). We do not redistribute the patched
+  upstream files — only the patch appliers.
+
++------------------------------------------------------------------------+
+| 5. TOOLCHAIN — built, not shipped                                      |
++------------------------------------------------------------------------+
+  Dockerfile builds iverilog v12 (steveicarus/iverilog, LGPL/MPL hybrid — see
+  upstream), oss-cad-suite for verilator + yosys (YosysHQ, ISC-style
+  per upstream). These are build-time dependencies; the binaries run on the
+  eval host. Their licenses govern the binaries, not this harness code.
+
+------------------------------------------------------------------------
+If you redistribute eval_harness, include this NOTICE + the root LICENSE.
+If you also redistribute vendored ext/verilog-eval, keep
+ext/verilog-eval/LICENSE. If you redistribute benchmark dataset contents,
+follow each upstream license (notably Apache-2.0 for TritonBench).

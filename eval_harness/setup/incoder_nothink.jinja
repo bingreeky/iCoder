@@ -1,0 +1,100 @@
+{%- if tools %}
+    {{- '<|im_start|>system\n' }}
+    {%- if messages[0].role == 'system' %}
+        {{- messages[0].content + ' [STRICT OUTPUT] Output ONLY the final Verilog/SystemVerilog module inside one ```verilog fenced block. Do NOT emit any reasoning, <think></think> blocks, chain-of-thought, commentary, or explanation — output code only.\n\n' }}
+    {%- else %}
+        {{- 'You are IndustrialCoder, a helpful assistant developed by Beihang University. [STRICT OUTPUT] Output ONLY the final Verilog/SystemVerilog module inside one ```verilog fenced block. Do NOT emit any reasoning, <think></think> blocks, chain-of-thought, commentary, or explanation — output code only.' }}
+    {%- endif %}
+    {{- "# Tools\n\nYou have access to the following functions:\n\n<tools>" }}
+    {%- for tool in tools %}
+        {%- if tool.type == 'function' and tool.function %}
+            {%- set func = tool.function %}
+        {%- else %}
+            {%- set func = tool %}
+        {%- endif %}
+        {{- "\n<function>\n<name>" + func.name + "</name>" }}
+        {%- if func.description %}
+            {{- "\n<description>" + func.description + "</description>" }}
+        {%- endif %}
+        {{- "\n<parameters>" }}
+        {%- if func.parameters and func.parameters.properties %}
+            {%- for param_name, param_fields in func.parameters.properties.items() %}
+                {{- "\n<parameter>" }}
+                {{- "\n<name>" + param_name + "</name>" }}
+                {%- if param_fields.type %}
+                    {{- "\n<type>" + param_fields.type + "</type>" }}
+                {%- endif %}
+                {%- if param_fields.description %}
+                    {{- "\n<description>" + param_fields.description + "</description>" }}
+                {%- endif %}
+                {{- "\n</parameter>" }}
+            {%- endfor %}
+        {%- endif %}
+        {{- "\n</parameters>\n</function>" }}
+    {%- endfor %}
+    {{- "\n</tools>\n\nIf you choose to call a function ONLY reply in the following format:\n\n<tool_call>\n<function=example_function_name>\n<parameter=example_parameter_1>\nvalue_1\n</parameter>\n</function>\n</tool_call><|im_end|>\n" }}
+{%- else %}
+    {%- if messages[0].role == 'system' %}
+        {{- '<|im_start|>system\n' + messages[0].content + '<|im_end|>\n' }}
+    {%- else %}
+        {{- '<|im_start|>system\nYou are IndustrialCoder, a helpful assistant developed by Beihang University.<|im_end|>\n' }}
+    {%- endif %}
+{%- endif %}
+{%- set ns = namespace(multi_step_tool=true, last_query_index=messages|length - 1) %}
+{%- for message in messages[::-1] %}
+    {%- set index = (messages|length - 1) - loop.index0 %}
+    {%- if ns.multi_step_tool and message.role == "user" and not(message.content.startswith('<tool_response>') and message.content.endswith('</tool_response>')) %}
+        {%- set ns.multi_step_tool = false %}
+        {%- set ns.last_query_index = index %}
+    {%- endif %}
+{%- endfor %}
+{%- for message in messages %}
+    {%- if (message.role == "user") or (message.role == "system" and not loop.first) %}
+        {{- '<|im_start|>' + message.role + '\n' + message.content + '<|im_end|>' + '\n' }}
+    {%- elif message.role == "assistant" %}
+        {%- set content = message.content %}
+        {{- '<|im_start|>' + message.role + '\n' + content }}
+        {%- if message.tool_calls %}
+            {%- for tool_call in message.tool_calls %}
+                {%- if (loop.first and content) or (not loop.first) %}
+                    {{- '\n' }}
+                {%- endif %}
+                {%- if tool_call.function %}
+                    {%- set tc = tool_call.function %}
+                {%- else %}
+                    {%- set tc = tool_call %}
+                {%- endif %}
+                {{- '<tool_call>\n<function=' + tc.name + '>\n' }}
+                {%- if tc.arguments is string %}
+                    {%- set args = tc.arguments | fromjson %}
+                {%- else %}
+                    {%- set args = tc.arguments %}
+                {%- endif %}
+                {%- for arg_name, arg_value in args.items() %}
+                    {{- '<parameter=' + arg_name + '>\n' }}
+                    {%- if arg_value is string %}
+                        {{- arg_value }}
+                    {%- else %}
+                        {{- arg_value | tojson }}
+                    {%- endif %}
+                    {{- '\n</parameter>\n' }}
+                {%- endfor %}
+                {{- '</function>\n</tool_call>' }}
+            {%- endfor %}
+        {%- endif %}
+        {{- '<|im_end|>\n' }}
+    {%- elif message.role == "tool" %}
+        {%- if loop.first or (messages[loop.index0 - 1].role != "tool") %}
+            {{- '<|im_start|>user' }}
+        {%- endif %}
+        {{- '\n<tool_response>\n' }}
+        {{- message.content }}
+        {{- '\n</tool_response>' }}
+        {%- if loop.last or (messages[loop.index0 + 1].role != "tool") %}
+            {{- '<|im_end|>\n' }}
+        {%- endif %}
+    {%- endif %}
+{%- endfor %}
+{%- if add_generation_prompt %}
+    {{- '<|im_start|>assistant\n' }}
+{%- endif %}

@@ -1,0 +1,33 @@
+# Python dependencies for eval_harness.
+#
+# The harness uses several distinct interpreters (see config.sh / README):
+#   - VLLM_PY   : serves local vLLM (needs vllm+torch+triton; install per your GPU/CUDA)
+#   - SYS_PY    : stdlib + light deps for RTL runners (RTLLM/ArchX/RealBench gen)
+#   - KERNELBENCH_PY / CVDP_VENV / REALBENCH_PY : per-bench venvs
+#
+# This file lists the eval-side dependencies. vllm/torch/triton are NOT pinned
+# here (GPU/CUDA-specific — install the build matching your driver).
+#
+# Versions are intentionally loose: the harness targets many model/driver
+# combos. Pin tightly only if you need bit-for-bit repro of a scored run.
+
+# OpenAI-compatible client + gateway helpers (proxy, expand teacher)
+openai
+litellm
+python-dotenv
+
+# KernelBench / TritonBench eval (torch + triton installed separately for your CUDA)
+einops
+tabulate
+tomli
+pydra-config
+ninja
+
+# VerilogEval harness (ext/verilog-eval/scripts/sv-generate)
+langchain-openai
+langchain-community
+langchain-core
+
+# CVDP (cocotb + iverilog testbenches)
+cocotb
+pytest

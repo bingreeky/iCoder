@@ -1,0 +1,103 @@
+# ============================================================
+# config.local.sh — per-host overrides. Copy this file to
+# config.local.sh and fill in your paths / keys.
+#
+# !! SECURITY !! ----------------------------------------------------------
+# This file is the ONLY place gateway credentials live. config.local.sh is
+# gitignored on purpose — NEVER commit it. To avoid leaking keys into your
+# shell history / process listing / logs:
+#   - do NOT pass EXTERNAL_API_KEY on the command line (it shows in `ps`);
+#     export it in this file or source a separate secrets file you keep
+#     out of the repo.
+#   - the proxy reads the key from the PROXY_API_KEY *environment variable*
+#     (set by serve_vllm.sh) and injects it as an Authorization header; it
+#     is never echoed in request URLs, stdout, or proxy logs.
+#   - this template contains only placeholders (<your-gateway>, sk-<your-key>);
+#     replace them with your own values after copying.
+# -----------------------------------------------------------------------
+#
+# Sourced by config.sh. The defaults in config.sh already point at a
+# local `benchmarks/` checkout (created by `setup/setup_datasets.sh`)
+# and the toolchain at `/opt/eval-toolchain` (from
+# `setup/setup_toolchain.sh`). Only override here what differs on your
+# host — e.g. a 1-GPU debug box with smaller context, or a different
+# model gateway.
+# ============================================================
+
+# --- Card count: auto-detected from nvidia-smi. Force-override only if needed. ---
+# export N_GPU=8
+
+# --- Python interpreters ---
+# vLLM-serving interpreter. Use a venv with vllm+torch+triton installed
+# (the quickstart builds one via `setup/build_venv.sh` if present, or
+# `python3 -m venv`). Override to that interpreter's python.
+# export VLLM_PY=/path/to/.venv/bin/python
+# export SYS_PY=/usr/local/bin/python3      # stdlib-only runners (RTLLM/ArchX/RealBench gen)
+
+# --- Engine ---
+# export MAX_MODEL_LEN=32768                # smaller for VRAM-constrained 1-GPU debug boxes
+# export MAX_NUM_SEQS=256
+# export GPU_MEM_UTIL=0.9
+# export THINK=1                            # 1 = keep model reasoning, strip reasoning tags from output
+
+# --- Toolchain: iverilog v12 (built from source, staged by setup_toolchain.sh) ---
+# v12.0 (stable) is required: the v14-devel in latest oss-cad-suite has a
+# $dumpvars forward-ref bug that zeroes VerilogEval/RTLLM pass_rate. vvp +
+# iverilog-vpi included (vpi needed by cocotb for CVDP).
+# export IVERILOG12_BIN=/opt/eval-toolchain/iverilog12/bin
+# Prepend so iverilog/vvp win over any image-bundled older version.
+# case ":$PATH:" in *":$IVERILOG12_BIN:"*) ;; *) export PATH="$IVERILOG12_BIN:$PATH";; esac
+# verilator/yosys (RealBench) — from oss-cad-suite. Optional.
+# export SETUP_ENV=/opt/eval-toolchain/setup_env.sh
+
+# --- RTL bench datasets ---
+# If you cloned/installed them somewhere other than the default
+# `benchmarks/` next to this repo, point the roots at the dirs the runners
+# actually walk. verilog-eval's harness (configure/Makefile/sv-generate)
+# is nested one level deeper than its dataset root.
+# export CODERBENCH_ROOT=$BENCHINFRA_ROOT/benchmarks
+# export VERILOGEVAL_ROOT=$CODERBENCH_ROOT/verilog-eval/verilog-eval   # has configure + dataset_spec-to-rtl + dataset_code-complete-iccad2023
+# export RTLLM_ROOT=$CODERBENCH_ROOT/rtllm/RTLLM                       # os.walk finds 50 designs (design_description.txt + testbench.v), skips _chatgpt
+# ArchXBench / RealBench — cloned from github:
+#   ArchXBench: github.com/sureshpurini/ArchXBench (level-0..6, problem-description.txt + tb.v)
+#   RealBench:  github.com/IPRC-DIP/RealBench  (.md.gpg already `make decrypt`-ed with PASSWORD=iprc-dip)
+# export ARCHX_ROOT=$CODERBENCH_ROOT/ArchXBench
+# export RB_ROOT=$CODERBENCH_ROOT/RealBench
+# RealBench verify uses its own run_verify.py; RB_PY defaults to
+# $RB/.venv/bin/python — override to a python that has its deps, e.g.
+# export REALBENCH_PY=$(which python)
+# export RESULTS_DIR=$BENCHINFRA_ROOT/results
+
+# --- CUDA/Triton bench roots ---
+# KernelBench / TritonBench clones, if not under the default benchmarks/ dir:
+# export KERNELBENCH_ROOT=$CODERBENCH_ROOT/KernelBench
+# export KERNELBENCH_PY=/path/to/python      # needs torch+triton+litellm
+# export TRITONBENCH_ROOT=$CODERBENCH_ROOT/TritonBench
+
+# --- CVDP ---
+# export CVDP_ROOT=$CODERBENCH_ROOT/CVDP
+# export CVDP_VENV=$CVDP_ROOT/.venv-cvdp/bin/python
+# CVDP cid003 = 78-seed subset (the table's "CVDP cid003" column). For the
+# full 302-seed run, override CVDP_DATASET to the nonagentic file.
+# export CVDP_DATASET=$CVDP_ROOT/datasets/cvdp_v1.0.4_cid003_only.nonjudge.jsonl
+# cocotb harness is CPU-parallel; -t 8 is plenty on a 96-core box.
+# export HARNESS_THREADS=8
+
+# --- External API mode (an OpenAI-compatible gateway) ---
+# Used by `serve_vllm.sh api` / `run_all.sh --api`. The proxy forwards to
+# EXTERNAL_API_URL, injects EXTERNAL_API_KEY as Authorization, and rewrites
+# the request `model` field to API_SERVED_NAME (KB sends "default" → this).
+# Fill in your own gateway + served name:
+# export EXTERNAL_API_URL=http://<your-gateway>:<port>/v1
+# export EXTERNAL_API_KEY=sk-<your-key>
+# export API_SERVED_NAME=<your-served-model-name>
+
+# Some reasoning models need a larger max_tokens for reasoning + code.
+# export REQUEST_MAX_TOKENS=32768
+
+# --- Model weights (set on the run host for local vLLM mode) ---
+# export MODEL_PATH=/path/to/your/model
+
+# --- KB GPU arch (e.g. Ampere=A100, Hopper=H100) ---
+# export GPU_ARCH=Ampere
+# export GPU_LABEL=A100

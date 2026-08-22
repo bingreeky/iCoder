@@ -1,0 +1,25 @@
+# eval outputs
+results/
+runs/
+*.log
+
+# python
+__pycache__/
+*.pyc
+*.pyo
+
+# editor / os
+.DS_Store
+*.swp
+config.local.sh
+# per-host config (has API keys — use config.local.sh.example as template)
+
+# python venvs (huge, host-specific — never commit)
+.venv-vllm/
+.venv-vllm-cu121/
+.venv*/
+*.venv/
+
+# vendored verilog-eval copy (ext/): keep scripts/sv-generate (has the gateway
+# model whitelist patch) + datasets + configure, but never the generated build/
+ext/verilog-eval/build/
