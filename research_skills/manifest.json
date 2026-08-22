@@ -1,0 +1,50 @@
+{
+  "name": "rsi-post-training-skills",
+  "version": "0.2.0",
+  "date": "2026-08-22",
+  "controller": "skills/auto-post-training/SKILL.md",
+  "prior_digest_algorithm": "Sort prior_files by UTF-8 path; for each file compute SHA-256 over path UTF-8 bytes, a NUL byte, file bytes, and a NUL byte; compute SHA-256 over the concatenated raw 32-byte per-file digests.",
+  "prior_digest": "42d6e22859bf5b4785279e5449e1a928f566dae75a157a7721fa43383d76cced",
+  "release_digest_algorithm": "Canonicalize the full manifest as UTF-8 JSON with keys sorted and compact separators after removing only release_digest; compute SHA-256 over those bytes. Bootstrap binds both release_digest and prior_digest.",
+  "release_digest": "02e68e27f31931d0ed310eb8f8e642af1aef8da42393adcaa1a86885d4a35fc5",
+  "prior_files": [
+    "skills/auto-post-training/SKILL.md",
+    "skills/auto-post-training/references/rsi-control-plane.md",
+    "skills/auto-post-training/references/runtime-records.md",
+    "skills/auto-post-training/references/task-queue.md",
+    "skills/data/SKILL.md",
+    "skills/experiment-ops/SKILL.md",
+    "skills/finalization/SKILL.md",
+    "skills/finalization/references/final-model-manifest.md",
+    "skills/opsd/SKILL.md",
+    "skills/project-docs/SKILL.md",
+    "skills/rlvr/SKILL.md",
+    "skills/sft/SKILL.md",
+    "skills/verification/SKILL.md",
+    "skills/verification/references/task-contracts.md"
+  ],
+  "skills": [
+    "auto-post-training",
+    "data",
+    "sft",
+    "opsd",
+    "rlvr",
+    "verification",
+    "finalization",
+    "experiment-ops",
+    "project-docs"
+  ],
+  "human_prior_boundary": "manifest.json and every prior_files entry are read-only within a run. Calibrated notes remain separate context sources governed by calibrated_notes_policy.",
+  "calibrated_notes_policy": "Bundled notes are not initial Human Prior. A legacy-unbound note may be read only inside a dedicated provenance-audit task and cannot justify action. It becomes Agent-loadable as context only when the human-approved project profile binds its exact digest and supplies version, provenance, evidence, and applicability scope in a Stage Context Packet.",
+  "calibrated_notes": [
+    {"path": "skills/data/notes/kernel-seeds.md", "content_sha256": "ea9997ccdab6e699809de79b21b892c13d30dd5cbf235ecc39a4101b93fd82af", "status": "legacy-unbound", "default_load": false},
+    {"path": "skills/data/notes/rtl-seeds.md", "content_sha256": "bde0d2472eab4d9c52401bfe83a508a3c55829cf78b665c4313dd25ba69ebd3a", "status": "legacy-unbound", "default_load": false},
+    {"path": "skills/experiment-ops/notes/compute-platform.md", "content_sha256": "59b47ff7cadd25f552c692af7bac8ed4b386b43c434bd0fea633c0cd1dcbb1d4", "status": "legacy-unbound", "default_load": false},
+    {"path": "skills/experiment-ops/notes/run-hygiene.md", "content_sha256": "12761cb204fa08a173fdf0e75c16423a53fee9c17cd617118e772dfc123b4809", "status": "legacy-unbound", "default_load": false},
+    {"path": "skills/opsd/notes/offline-opsd.md", "content_sha256": "d9bceafc044a954aa77ac4b19ce58d88eb3f8a9227e8f5eb1386e572aa9c1eae", "status": "legacy-unbound", "default_load": false},
+    {"path": "skills/rlvr/notes/multi-backend-verification.md", "content_sha256": "5df6bad4636eb940e2ed7491a5c00f1d5272f4108ce7e7371ada10e607e620fb", "status": "legacy-unbound", "default_load": false},
+    {"path": "skills/rlvr/notes/verification-service.md", "content_sha256": "8acc54df3d1392aefcaad45a5bc94a636861a326d754ea0650fc14bfe3ba73ae", "status": "legacy-unbound", "default_load": false},
+    {"path": "skills/sft/notes/megatron-multinode.md", "content_sha256": "cf9767bc52a1ca3ce9a013f9d0401cee5ebd4dd0a11450f64f9e760fe124e624", "status": "legacy-unbound", "default_load": false}
+  ],
+  "runtime_policy": "All mutable run state lives outside the installed Skill bundle, including bootstrap contexts/events, project profiles and capability locks, Stage Context Packets and cutoffs, Task Queue and attempts, experiments, decisions, artifacts, known defects, controller state, and learned memory."
+}
