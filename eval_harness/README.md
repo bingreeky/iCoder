@@ -39,9 +39,9 @@ with local vLLM deployments and external OpenAI-compatible APIs.
 
 | Principle | What it means |
 |---|---|
-| **Task-native evidence** | Correctness comes from the benchmark's compiler, simulator, testbench, formal check, or numerical oracle. |
+| **Task-native evidence** | Correctness comes from the benchmark's compiler, simulator, transcript comparison, self-checking testbench, programmatic assertion, golden pipeline, or numerical oracle. |
 | **Explicit verdict states** | A candidate is accepted, judged and rejected, or left unverified when no trustworthy verdict is available. |
-| **Provenance first** | Results remain traceable to benchmark revision, configuration, model identifier, verifier profile, and raw artifacts. |
+| **Provenance first** | Reproducible releases retain the benchmark revision, configuration, model identifier, verifier profile, and raw artifacts. |
 | **Endpoint neutral** | The same runners can target a local vLLM deployment or an external OpenAI-compatible endpoint. |
 | **Resource aware** | Generation and GPU-heavy verification are separated so serving resources can be released before scoring. |
 | **Fail closed** | Candidate-controlled text cannot authorize an infrastructure exclusion or promote itself to a passing verdict. |
@@ -70,8 +70,17 @@ same downstream runners and artifact layout.
 
 ## Outcome contract
 
-The shared verifier layer preserves the difference between model behavior and
-infrastructure behavior:
+Stage-specific adapters reuse a common evidence record across SFT, OPSD, and RLVR:
+
+| Field | Content |
+|---|---|
+| **Status** | `pass`, `judged failure`, or `unverified` |
+| **Failure stage** | The trusted execution stage that produced or prevented a verdict |
+| **Measurements** | Task-grounded evidence such as mismatch data, execution signals, or performance measurements |
+| **Provenance** | Verifier, toolchain, payload, configuration, and artifact identity needed to audit the verdict |
+
+The status preserves the difference between model behavior and infrastructure
+behavior:
 
 | Outcome | Meaning |
 |---|---|
@@ -81,19 +90,24 @@ infrastructure behavior:
 
 Candidate source, compiler output, runtime text, tracebacks, and process exit codes
 are untrusted. Infrastructure exclusions are accepted only from explicit harness
-channels. See [`verify/README.md`](verify/README.md) for the trust boundary and
-module map.
+channels. The admissible oracle remains scoped to the generated artifact and its
+trusted task harness. SFT uses verdicts for corpus admission, OPSD retains execution
+evidence as feedback, and RLVR maps eligible outcomes to rewards while excluding
+unresolved trajectories. See [`verify/README.md`](verify/README.md) for the trust
+boundary and module map.
 
 ## Supported benchmarks
 
 | Domain | Benchmarks | Native verification |
 |---|---|---|
-| RTL design | VerilogEval, RTLLM, ArchXBench, RealBench-Module, CVDP | compilation, simulation, formal checks, or task testbenches |
+| RTL design | VerilogEval, RTLLM, ArchXBench, RealBench-Module, CVDP | compilation, simulation, transcript comparison, assertions, golden pipelines, or task testbenches |
 | GPU kernels | KernelBench, TritonBench-G, TritonBench-T | compilation and numerical comparison with benchmark references |
 
 Benchmark membership, runner modes, sampling settings, and profiles are defined in
 [`benches/registry.sh`](benches/registry.sh). Upstream datasets are installed
-separately and retain their own licenses.
+separately and retain their own licenses. Harness coverage is broader than the
+technical report's primary evaluation suite; TritonBench-T is provided as an
+additional integration.
 
 ## Security
 
