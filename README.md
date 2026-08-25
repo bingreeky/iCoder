@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="eval_harness/docs/assets/icoder-27b.png" alt="iCoder-27B" width="560">
+  <img src="eval_harness/docs/assets/icoder-27b.png" alt="iCoder-27B" width="400">
 </p>
 
 <h3 align="center">Recursive AI-Led Development of Frontier Industrial Coding Model</h3>
@@ -8,15 +8,6 @@
   <em>High-density expert priors · Low-frequency human intervention · Auditable agent-led experimentation</em>
 </p>
 
-<p align="center">
-  <sub><strong>Core Contributors:</strong> Cheng Yang · Jiayang Lyu · Shangyuan Liu</sub><br>
-  <sub><strong>Project Lead:</strong> Guibin Zhang &nbsp;·&nbsp; <strong>Senior Advisors:</strong> Junchi Yan · Shuicheng Yan · Weinan E</sub><br>
-  <sub><strong>Corresponding Authors:</strong> Linfeng Zhang · Qibing Ren</sub>
-</p>
-
-<p align="center">
-  <sub>Shanghai Jiao Tong University · National University of Singapore · DP Technology · Endless Frontier</sub>
-</p>
 
 <p align="center">
   <img alt="Paradigm: human-guided, agent-led" src="https://img.shields.io/badge/paradigm-human--guided%20%7C%20agent--led-8B5E0C?style=flat-square">
