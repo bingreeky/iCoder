@@ -28,8 +28,9 @@
 
 The iCoder Eval Harness is the executable-evidence layer of the iCoder project. It
 provides one workflow for generating model candidates, releasing serving resources,
-running benchmark-native verification, and collecting auditable artifacts. It works
-with local vLLM deployments and external OpenAI-compatible APIs.
+running benchmark-native verification, and collecting structured artifacts with
+verdict and provenance fields. It works with local vLLM deployments and external
+OpenAI-compatible APIs.
 
 > [!WARNING]
 > The harness compiles and executes model-generated code. Treat every candidate as
@@ -39,12 +40,12 @@ with local vLLM deployments and external OpenAI-compatible APIs.
 
 | Principle | What it means |
 |---|---|
-| **Task-native evidence** | Correctness comes from the benchmark's compiler, simulator, transcript comparison, self-checking testbench, programmatic assertion, golden pipeline, or numerical oracle. |
+| **Task-native verdicts** | Verdicts are produced by the benchmark's compiler, simulator, transcript comparison, self-checking testbench, programmatic assertion, golden pipeline, or numerical oracle. |
 | **Explicit verdict states** | A candidate is accepted, judged and rejected, or left unverified when no trustworthy verdict is available. |
-| **Provenance first** | Reproducible releases retain the benchmark revision, configuration, model identifier, verifier profile, and raw artifacts. |
+| **Provenance fields** | Artifacts record the benchmark revision, configuration, model identifier, verifier profile, and raw outputs needed to trace a verdict. |
 | **Endpoint neutral** | The same runners can target a local vLLM deployment or an external OpenAI-compatible endpoint. |
 | **Resource aware** | Generation and GPU-heavy verification are separated so serving resources can be released before scoring. |
-| **Fail closed** | Candidate-controlled text cannot authorize an infrastructure exclusion or promote itself to a passing verdict. |
+| **Fail closed** | Infrastructure classification is accepted only from explicit harness-controlled fields; candidate output is treated as untrusted. |
 
 ## Execution model
 
@@ -70,14 +71,14 @@ same downstream runners and artifact layout.
 
 ## Outcome contract
 
-Stage-specific adapters reuse a common evidence record across SFT, OPSD, and RLVR:
+Verifier adapters emit a common evidence record:
 
 | Field | Content |
 |---|---|
 | **Status** | `pass`, `judged failure`, or `unverified` |
 | **Failure stage** | The trusted execution stage that produced or prevented a verdict |
 | **Measurements** | Task-grounded evidence such as mismatch data, execution signals, or performance measurements |
-| **Provenance** | Verifier, toolchain, payload, configuration, and artifact identity needed to audit the verdict |
+| **Provenance** | Verifier, toolchain, payload, configuration, and artifact identity needed to trace the verdict |
 
 The status preserves the difference between model behavior and infrastructure
 behavior:
@@ -86,15 +87,13 @@ behavior:
 |---|---|
 | **Pass** | The task-native oracle explicitly accepts the generated artifact. |
 | **Judged failure** | The candidate reached a valid oracle and failed its contract. |
-| **Unverified** | An approved infrastructure failure prevented a trustworthy verdict. |
+| **Unverified** | A harness-recognized infrastructure failure prevented a trustworthy verdict. |
 
 Candidate source, compiler output, runtime text, tracebacks, and process exit codes
-are untrusted. Infrastructure exclusions are accepted only from explicit harness
-channels. The admissible oracle remains scoped to the generated artifact and its
-trusted task harness. SFT uses verdicts for corpus admission, OPSD retains execution
-evidence as feedback, and RLVR maps eligible outcomes to rewards while excluding
-unresolved trajectories. See [`verify/README.md`](verify/README.md) for the trust
-boundary and module map.
+are treated as untrusted. The classifier accepts infrastructure status only from
+explicit fields set by harness-controlled logic. See
+[`verify/README.md`](verify/README.md) for the classification boundary and module
+map.
 
 ## Supported benchmarks
 
@@ -105,9 +104,7 @@ boundary and module map.
 
 Benchmark membership, runner modes, sampling settings, and profiles are defined in
 [`benches/registry.sh`](benches/registry.sh). Upstream datasets are installed
-separately and retain their own licenses. Harness coverage is broader than the
-technical report's primary evaluation suite; TritonBench-T is provided as an
-additional integration.
+separately and retain their own licenses.
 
 ## Security
 
@@ -278,7 +275,8 @@ To add a benchmark:
 1. create a runner under `benches/`;
 2. register its generation or verification stage in `benches/registry.sh`;
 3. adapt its native oracle to the shared outcome contract where needed;
-4. document required datasets, toolchains, and trusted infrastructure channels.
+4. document required datasets, toolchains, and harness-controlled infrastructure
+   signals.
 
 ## License and attribution
 

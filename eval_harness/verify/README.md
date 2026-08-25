@@ -7,17 +7,17 @@ service.
 ## Trust boundary
 
 Candidate source code, compiler output, runtime output, tracebacks, and process exit
-codes are untrusted. They cannot declare themselves to be infrastructure failures or
-remove themselves from a scoring denominator.
+codes are treated as untrusted. The classifier does not derive infrastructure status
+from candidate-controlled values.
 
 [`core.py`](core.py) centralizes the boundary:
 
 - `finalize_failure_classification(...)` accepts infrastructure classifications only
-  from trusted harness channels;
+  from explicit fields set by harness logic;
 - `is_infra(...)` provides one predicate for downstream aggregation;
 - `run_sandboxed(...)` starts a separate process group, applies resource limits,
   enforces a timeout, and terminates remaining child processes;
-- temporary working directories keep candidate artifacts away from the repository.
+- temporary working directories separate candidate artifacts from the repository.
 
 These controls reduce accidental interference but do not make generated code safe.
 Run the harness inside an isolated, disposable environment as described in the
@@ -35,8 +35,8 @@ Run the harness inside an isolated, disposable environment as described in the
 | `archxbench.py` | ArchXBench | sample-level classification around the benchmark runner |
 | `verilogeval.py` | VerilogEval | result cleanup around the upstream analyzer |
 
-Anti-cheat signals are recorded as diagnostic fields. Correctness remains tied to
-the benchmark oracle unless a module explicitly documents a different policy.
+Anti-cheat signals are recorded as diagnostic fields. Pass/fail verdicts remain tied
+to the benchmark oracle unless a module explicitly documents a different policy.
 
 ## Verdict profiles
 
@@ -76,4 +76,3 @@ python -m verify.verilogeval
 
 End-to-end verification additionally requires the benchmark datasets, compilers,
 simulators, and GPU stack used by the selected runners.
-

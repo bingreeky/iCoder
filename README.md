@@ -5,9 +5,8 @@
 <h3 align="center">Recursive AI-Led Development of Frontier Industrial Coding Model</h3>
 
 <p align="center">
-  <em>High-density expert priors · Low-frequency human intervention · Auditable agent-led experimentation</em>
+  <em>Research Skills · Agent-led post-training · Executable evaluation</em>
 </p>
-
 
 <p align="center">
   <img alt="Paradigm: human-guided, agent-led" src="https://img.shields.io/badge/paradigm-human--guided%20%7C%20agent--led-8B5E0C?style=flat-square">
@@ -22,19 +21,16 @@
   <a href="#repository-components">Components</a> ·
   <a href="eval_harness/README.md">Eval Harness</a> ·
   <a href="https://huggingface.co/i-Coder">Model</a> ·
-  <a href="#security-and-governance">Security</a>
+  <a href="#security">Security</a>
 </p>
 
 ---
 
 ## Overview
 
-iCoder studies a practical intermediate path toward recursive AI: how little human
-involvement is sufficient for an agent to lead the development of a release-ready
-industrial coding model. Human experts encode high-density operational knowledge as
-**Research Skills**; within explicit resource, verification, and governance
-boundaries, an agent selects experiments, executes them, diagnoses failures, and
-revises a multi-stage post-training program. The resulting 27B model is
+iCoder is a research project on agent-led model development for RTL design and GPU
+kernel optimization. This repository publishes the project's evaluation harness and
+Research Skills bundle. Model artifacts are available as
 [iCoder-27B](https://huggingface.co/i-Coder).
 
 The project targets **industrial coding**: RTL design and GPU kernel optimization,
@@ -42,31 +38,29 @@ where acceptance is determined by specialized executable toolchains and deployme
 quality rather than surface similarity alone.
 
 > [!NOTE]
-> iCoder is **human-guided and agent-led**. It is not presented as fully autonomous
-> recursive self-improvement. Humans define the objective, stage scaffold, trusted
-> verifiers, permission boundaries, reproducibility requirements, and release
-> authority; the agent controls concrete experiments and stage transitions within
-> that envelope.
+> iCoder is **human-guided and agent-led**, not a fully autonomous self-improvement
+> system. Its workflows require user-provided objectives, task instructions,
+> verifiers, resource limits, and an isolated execution environment.
 
 ## Framework
 
 <p align="center">
-  <img src="eval_harness/docs/assets/framework.png" alt="Research Skills, self-evolving agent loop, and frontier model" width="100%">
+  <img src="eval_harness/docs/assets/framework.png" alt="iCoder project framework" width="100%">
 </p>
 
 <p align="center">
-  <sub>Research Skills provide an executable human prior; the agent iterates through data evolution and post-training under task-native verification.</sub>
+  <sub>Research Skills guide the agent loop; task-native execution feeds evidence back into experimentation.</sub>
 </p>
 
-The framework separates knowledge supplied before the loop from evidence acquired
-during the loop:
+The project framework separates instructions supplied before an experiment from
+evidence produced during execution:
 
-| Layer | Responsibility |
+| Element | Function |
 |---|---|
-| **Human prior** | Encode the objective, stage scaffold, trusted verifiers, permission boundaries, reproducibility requirements, and operational procedures as versioned Research Skills. |
-| **Agentic experimentation** | Select data transformations, experiments, optimization objectives, reward adapters, checkpoints, and stage transitions while maintaining an auditable decision trail. |
-| **Executable verification** | Ground decisions in task-native compilers, simulators, testbenches, and numerical oracles, with explicit status, failure stage, measurements, and provenance. |
-| **Governance** | Keep data policy, evaluation semantics, boundary changes, external side effects, and release authority human-owned. |
+| **Research Skills** | Provide versioned task instructions, workflow constraints, and verifier requirements. |
+| **Agent loop** | Applies those instructions, runs experiments, and reacts to execution feedback. |
+| **Executable verification** | Uses task-native compilers, simulators, testbenches, and numerical oracles to produce structured outcomes. |
+| **Model release** | Makes the resulting iCoder-27B artifacts available through Hugging Face. |
 
 ### Development path
 
@@ -75,23 +69,22 @@ then proceed through **SFT → OPSD → RLVR**:
 
 | Stage | Role |
 |---|---|
-| **Data construction** | Normalize RTL and GPU-kernel seeds into a shared executable item contract, then evolve, verify, deduplicate, balance, and rescreen admitted tasks. |
-| **SFT (Supervised Fine-Tuning)** | Build a capability-gap corpus from verified teacher trajectories, using task-native verdicts as the admission gate. |
-| **OPSD (On-Policy Self-Distillation)** | Transfer privileged experimental context to a bare-context student through verifier-signed token credit. |
-| **RLVR (Reinforcement Learning with Verifiable Rewards)** | Convert online execution outcomes into domain-aware rewards while masking trajectories without a trustworthy verdict. |
+| **Data construction** | Prepares executable RTL and GPU-kernel tasks and checks them with domain toolchains. |
+| **SFT (Supervised Fine-Tuning)** | Uses verified teacher solutions to establish task capability. |
+| **OPSD (On-Policy Self-Distillation)** | Trains on feedback collected from the model's own execution attempts. |
+| **RLVR (Reinforcement Learning with Verifiable Rewards)** | Uses domain-specific execution outcomes as training signals. |
 
-The stages form a feedback loop, not a one-way assembly line. Evaluation can return
-the process to data construction, verifier work, or an earlier training decision
-whenever the available evidence is insufficient. The verifier also changes roles
-across stages: corpus admission in SFT, feedback construction in OPSD, and failure
-diagnosis plus reward assignment in RLVR.
+The stages form a feedback loop: evaluation can send the process back to data
+construction, verifier work, or an earlier training decision. This repository
+focuses on the released evaluation and Research Skills components; it does not
+include the complete training infrastructure.
 
 ## Repository components
 
 | Component | Role |
 |---|---|
 | [`eval_harness/`](eval_harness/) | Runs code-model evaluations across RTL and GPU-kernel benchmarks using local vLLM or an OpenAI-compatible endpoint. |
-| [`research_skills/`](research_skills/) | Houses the versioned Research Skills that encode the executable human prior. Maintained by Yangcheng. |
+| [`research_skills/`](research_skills/) | Provides the versioned task instructions and workflow constraints used by the project. |
 
 ### Evaluation harness
 
@@ -101,20 +94,9 @@ The harness turns generated artifacts into task-native evidence:
 model endpoint → candidate generation → isolated verification → structured artifacts
 ```
 
-It separates generation from resource-intensive verification, records verdict and
-provenance information, and keeps benchmark-specific logic behind a shared
-orchestration interface. See the [complete harness guide](eval_harness/README.md).
-
-### Research Skills
-
-Research Skills turn recurring expert intervention into a versioned, executable,
-and deliberately under-specified **process prior**. They establish safe starting
-conditions and reusable procedures without prescribing the experiments or their
-conclusions. Findings, negative results, and decisions remain in run-scoped research
-memory rather than being folded into the prior itself.
-
-The bundle is governed by [`research_skills/manifest.json`](research_skills/manifest.json).
-Its documentation and maintenance remain with Yangcheng.
+It separates generation from resource-intensive verification, records structured
+outcomes and provenance fields, and keeps benchmark-specific logic behind a shared
+orchestration interface. See the [harness guide](eval_harness/README.md).
 
 ## Getting started
 
@@ -136,24 +118,21 @@ iCoder/
 └── README.md            project overview
 ```
 
-## Security and governance
+## Security
 
 The evaluation harness compiles and executes model-generated code. Run it only in an
 isolated, disposable environment with strict filesystem, process, resource, and
 network controls. Never place personal data, model credentials, or unrelated secrets
 on an evaluation host.
 
-Research automation is constrained by explicit capabilities. New datasets, external
-side effects, verifier semantics, and public releases remain human-authorized
-decisions. See the harness [security guidance](eval_harness/README.md#security) for
-operational details.
+See the harness [security guidance](eval_harness/README.md#security) for operational
+details.
 
 ## Citation and release resources
 
 Citation metadata for the evaluation harness is available in
 [`eval_harness/CITATION.cff`](eval_harness/CITATION.cff). Model artifacts are
 available from the [i-Coder organization on Hugging Face](https://huggingface.co/i-Coder).
-The technical-report link will be added when its public page is available.
 
 ## License
 
