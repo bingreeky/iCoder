@@ -13,6 +13,7 @@
 <p align="center">
   <a href="#quick-start">Quick start</a> ·
   <a href="#skill-map">Skill map</a> ·
+  <a href="#post-training-pipeline">Pipeline</a> ·
   <a href="#how-the-bundle-works">Workflow</a> ·
   <a href="#human-prior-and-calibrated-notes">Prior boundary</a> ·
   <a href="manifest.json">Manifest</a>
@@ -32,14 +33,34 @@ verifier requirements, and reusable operating procedures. The agent works inside
 that boundary to select experiments, run and diagnose them, update the persistent
 research state, and decide what to try next.
 
-The bundle supports the full development path:
+<p align="center">
+  <img src="assets/research-skills-agent-loop.png" width="100%" alt="Research Skills provide the human prior for a self-evolving agent loop spanning data evolution, SFT, OPSD, and RLVR.">
+</p>
 
-```text
-Data ──▶ SFT ──▶ OPSD ──▶ RLVR ──▶ Finalization
-  ▲       │       │        │
-  └───────┴───────┴────────┘
-       evidence may send the process upstream
-```
+<p align="center"><em>
+Research Skills encode model-training procedures, resource permissions, and
+module-level operations as the Human Prior that guides the self-evolving agent
+loop.
+</em></p>
+
+## Post-training pipeline
+
+The bundle covers the complete model-development path used for iCoder-27B. A
+shared pool of executable RTL-design and GPU-kernel tasks supports three
+successive parameter-update stages. SFT supplies verified teacher trajectories
+for the reasoning cold start; OPSD distills recoverable failure experience under
+privileged context; and RLVR optimizes the resulting checkpoint with
+execution-grounded rewards. The same task-native verifier changes role across
+the stages, from corpus admission to diagnostic feedback and online reward.
+
+<p align="center">
+  <img src="assets/post-training-pipeline.png" width="100%" alt="The iCoder post-training pipeline proceeds from a shared executable task pool through SFT, OPSD, and RLVR to iCoder-27B.">
+</p>
+
+<p align="center"><em>
+The iCoder post-training pipeline. Task-native executable verification provides
+stage-specific supervision for SFT, OPSD, and RLVR.
+</em></p>
 
 These files are operating instructions, not a pretrained model or a one-command
 training system. A real run still requires project-specific models, datasets,
@@ -139,6 +160,16 @@ reward. The conceptual unit is the **task-native execution contract**; a
 benchmark name selects an official harness, payload, toolchain, and reporting
 profile rather than defining the verifier class.
 
+<p align="center">
+  <img src="assets/verifier-guided-data-evolution.png" width="100%" alt="Verifier-guided construction of the shared executable task pool from seed tasks, task contracts, and controlled evolution routes.">
+</p>
+
+<p align="center"><em>
+The Data Skill turns seed tasks into a shared executable task pool through
+explicit task contracts, controlled evolution routes, and verifier-guided
+admission.
+</em></p>
+
 ## Human Prior and calibrated notes
 
 [`manifest.json`](manifest.json) is the release boundary. Its `prior_files`
@@ -160,6 +191,7 @@ the experiments that established them.
 
 ```text
 research_skills/
+├── assets/                    paper figures used by this guide
 ├── manifest.json              version and Human Prior digest
 ├── README.md                  public guide and Skill index
 └── skills/
