@@ -19,6 +19,7 @@
   <a href="#overview">Overview</a> ·
   <a href="#framework">Framework</a> ·
   <a href="#repository-components">Components</a> ·
+  <a href="research_skills/README.md">Research Skills</a> ·
   <a href="eval_harness/README.md">Eval Harness</a> ·
   <a href="https://huggingface.co/i-Coder">Model</a> ·
   <a href="#security">Security</a>
@@ -100,14 +101,20 @@ orchestration interface. See the [harness guide](eval_harness/README.md).
 
 ## Getting started
 
-Clone the repository and enter the evaluation harness:
+Clone the repository once:
 
 ```bash
 git clone https://github.com/bingreeky/iCoder.git
-cd iCoder/eval_harness
+cd iCoder
 ```
 
-Then follow the [toolchain, dataset, and endpoint setup](eval_harness/README.md#quick-start).
+To use the agent workflow, install the Skill directories and start with the
+`auto-post-training` controller. The [Research Skills guide](research_skills/README.md#quick-start)
+explains installation, bootstrap inputs, the Human Prior boundary, and the role
+of every Skill.
+
+To run model evaluation, enter `eval_harness/` and follow the
+[toolchain, dataset, and endpoint setup](eval_harness/README.md#quick-start).
 
 ## Repository layout
 
