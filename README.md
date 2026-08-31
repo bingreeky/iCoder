@@ -17,6 +17,7 @@
 
 <p align="center">
   <a href="#overview">Overview</a> ·
+  <a href="https://huggingface.co/i-Coder/iCoder-27B/blob/main/Coder_Tech_Report.pdf">Paper</a> ·
   <a href="#framework">Framework</a> ·
   <a href="#repository-components">Components</a> ·
   <a href="research_skills/README.md">Research Skills</a> ·
@@ -31,7 +32,8 @@
 
 iCoder is a research project on agent-led model development for RTL design and GPU
 kernel optimization. This repository publishes the project's evaluation harness and
-Research Skills bundle. Model artifacts are available as
+Research Skills bundle. The full technical report is available as a
+[PDF](https://huggingface.co/i-Coder/iCoder-27B/blob/main/Coder_Tech_Report.pdf), and model artifacts are available as
 [iCoder-27B](https://huggingface.co/i-Coder).
 
 The project targets **industrial coding**: RTL design and GPU kernel optimization,
@@ -136,6 +138,19 @@ See the harness [security guidance](eval_harness/README.md#security) for operati
 details.
 
 ## Citation and release resources
+
+```bibtex
+@techreport{yang2026icoder,
+  title  = {iCoder-27B: Recursive AI-Led Development of Frontier Industrial Coding Model},
+  author = {Cheng Yang and Jiayang Lyu and Shangyuan Liu and Guibin Zhang and
+            Jiong Lin and Xinlei Yu and Junchi Yan and Shuicheng Yan and
+            E, Weinan and Linfeng Zhang and Linfeng Zhang and Qibing Ren},
+  year   = {2026},
+  month  = aug,
+  type   = {Technical Report},
+  url    = {https://huggingface.co/i-Coder/iCoder-27B}
+}
+```
 
 Citation metadata for the evaluation harness is available in
 [`eval_harness/CITATION.cff`](eval_harness/CITATION.cff). Model artifacts are
